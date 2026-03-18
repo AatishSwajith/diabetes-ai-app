@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiabetesML — Predict Your Risk</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #F5F0E8;
+            --bg2: #EDE8DE;
+            --ink: #1A1510;
+            --ink2: #5C4F3A;
+            --ink3: #9C8E78;
+            --red: #C03A2B;
+            --red-soft: #F5E8E6;
+            --teal: #1A6B5A;
+            --teal-soft: #E2F0EC;
+            --gold: #B5860D;
+            --gold-soft: #F7F0DC;
+            --line: rgba(90,70,40,0.12);
+            --line2: rgba(90,70,40,0.07);
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.65; overflow-x: hidden; }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 64px;
+            backdrop-filter: blur(14px);
+            background: rgba(245,240,232,0.88);
+            border-bottom: 1px solid var(--line);
+        }
+        .nav-logo { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { font-size: 12px; color: var(--ink2); text-decoration: none; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--red); }
+        .nav-cta { background: var(--ink); color: var(--bg) !important; padding: 8px 18px; border-radius: 99px; transition: background 0.2s !important; }
+        .nav-cta:hover { background: var(--red) !important; color: #fff !important; }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh; padding-top: 80px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            position: relative; overflow: hidden;
+            align-items: center;
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: repeating-linear-gradient(0deg, transparent, transparent 59px, var(--line2) 60px),
+                        repeating-linear-gradient(90deg, transparent, transparent 59px, var(--line2) 60px);
+        }
+        .hero-left { padding: 80px 64px 80px 80px; position: relative; z-index: 2; }
+        .eyebrow {
+            font-family: 'DM Mono', monospace; font-size: 11px;
+            letter-spacing: 0.2em; text-transform: uppercase; color: var(--red);
+            margin-bottom: 22px; display: flex; align-items: center; gap: 10px;
+        }
+        .eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--red); }
+        h1 { font-family: 'DM Serif Display', serif; font-size: clamp(44px, 5vw, 74px); line-height: 1.02; color: var(--ink); margin-bottom: 24px; letter-spacing: -0.02em; }
+        h1 em { font-style: italic; color: var(--red); }
+        .hero-desc { font-size: 17px; color: var(--ink2); max-width: 430px; margin-bottom: 44px; font-weight: 300; line-height: 1.8; }
+        .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+        .btn-primary {
+            background: var(--ink); color: var(--bg); padding: 13px 28px;
+            border-radius: 99px; font-size: 14px; font-weight: 500;
+            text-decoration: none; border: none; cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            display: inline-block;
+        }
+        .btn-primary:hover { background: var(--red); transform: translateY(-1px); }
+        .btn-outline {
+            background: transparent; color: var(--ink2); padding: 13px 28px;
+            border-radius: 99px; font-size: 14px; font-weight: 400;
+            text-decoration: none; border: 1px solid var(--line); cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+            display: inline-block;
+        }
+        .btn-outline:hover { border-color: var(--ink); color: var(--ink); }
+        .hero-stats { display: flex; gap: 40px; margin-top: 56px; padding-top: 36px; border-top: 1px solid var(--line); }
+        .hero-stat-val { font-family: 'DM Serif Display', serif; font-size: 34px; color: var(--ink); display: block; }
+        .hero-stat-label { font-size: 11px; color: var(--ink3); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; margin-top: 2px; }
+
+        .hero-right { display: flex; align-items: center; justify-content: center; padding: 80px 80px 80px 40px; position: relative; z-index: 2; }
+        .hero-visual { width: 100%; max-width: 380px; position: relative; }
+        .big-ring {
+            width: 320px; height: 320px; border-radius: 50%;
+            background: var(--ink); margin: 0 auto;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: visible;
+        }
+        .ring-inner { text-align: center; position: relative; z-index: 2; }
+        .ring-pct { font-family: 'DM Serif Display', serif; font-size: 60px; color: var(--bg); display: block; line-height: 1; }
+        .ring-label { font-size: 11px; color: rgba(245,240,232,0.45); font-family: 'DM Mono', monospace; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px; }
+
+        /* PREDICT SECTION */
+        #predict { background: var(--ink); position: relative; overflow: hidden; padding: 100px 80px; }
+        #predict::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(245,240,232,0.03) 60px),
+                        repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(245,240,232,0.03) 60px);
+        }
+        #predict h2 { color: var(--bg); font-family: 'DM Serif Display', serif; font-size: 40px; margin-bottom: 20px; }
+        .sub { color: rgba(245,240,232,0.5); font-size: 16px; margin-bottom: 40px; }
+
+        .predict-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; position: relative; z-index: 2; }
+        .form-card { background: rgba(245,240,232,0.05); border: 1px solid rgba(245,240,232,0.1); border-radius: 20px; padding: 36px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .field { display: flex; flex-direction: column; gap: 7px; }
+        .field.full { grid-column: span 2; }
+        .field label { font-size: 11px; color: rgba(245,240,232,0.5); font-family: 'DM Mono', monospace; text-transform: uppercase; }
+        .field input {
+            background: rgba(245,240,232,0.07); border: 1px solid rgba(245,240,232,0.12);
+            color: var(--bg); border-radius: 10px; padding: 11px 14px; outline: none;
+        }
+        .predict-btn {
+            width: 100%; padding: 14px; background: var(--red); color: #fff; border: none; border-radius: 10px;
+            cursor: pointer; font-weight: 500; transition: 0.2s;
+        }
+        .predict-btn:hover { background: #a3301f; }
+
+        /* RESULTS */
+        .result-box { border-radius: 20px; padding: 36px; display: none; }
+        .result-box.high { background: rgba(192,58,43,0.15); border: 1px solid rgba(192,58,43,0.3); }
+        .result-box.low { background: rgba(26,107,90,0.15); border: 1px solid rgba(26,107,90,0.3); }
+        .result-box.show { display: block; }
+        .result-outcome { font-family: 'DM Serif Display', serif; font-size: 36px; margin-bottom: 10px; }
+        .result-box.high .result-outcome { color: #E85D4A; }
+        .result-box.low .result-outcome { color: #3BBFA0; }
+        .result-prob { font-size: 48px; font-family: 'DM Serif Display', serif; color: var(--bg); }
+        .result-text { font-size: 14px; color: rgba(245,240,232,0.65); margin-top: 15px; }
+
+        .loading-card { display: none; color: #fff; text-align: center; padding: 40px; }
+        .loading-card.show { display: block; }
+        .error-msg { color: #E85D4A; display: none; margin-bottom: 10px; font-size: 12px; }
+        .error-msg.show { display: block; }
+
+        @media(max-width: 900px) {
+            .hero, .predict-layout { grid-template-columns: 1fr; }
+            .hero-right { display: none; }
+            nav { padding: 18px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a class="nav-logo" href="#">DiabetesML</a>
+    <ul class="nav-links">
+        <li><a href="#predict" class="nav-cta">Try Predictor</a></li>
+    </ul>
+</nav>
+
+<section class="hero">
+    <div class="hero-left">
+        <div class="eyebrow">Machine Learning · Clinical AI</div>
+        <h1>Predict your<br><em>diabetes</em><br>risk instantly</h1>
+        <p class="hero-desc">Enter your clinical measurements and our model will assess your risk in seconds based on your specific health data.</p>
+        <div class="hero-btns">
+            <a href="#predict" class="btn-primary">Check my risk now</a>
+        </div>
+        <div class="hero-stats">
+            <div><span class="hero-stat-val">64.4%</span><span class="hero-stat-label">Model Accuracy</span></div>
+            <div><span class="hero-stat-val">768</span><span class="hero-stat-label">Dataset Size</span></div>
+        </div>
+    </div>
+    <div class="hero-right">
+        <div class="big-ring">
+            <div class="ring-inner">
+                <span class="ring-pct">64%</span>
+                <span class="ring-label">Accuracy</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="predict">
+    <h2>Enter your health data</h2>
+    <p class="sub">Fill in the values below to receive an AI-generated risk assessment.</p>
+
+    <div class="predict-layout">
+        <div class="form-card">
+            <div class="form-grid">
+                <div class="field"><label>Pregnancies</label><input type="number" id="preg" placeholder="e.g. 2"></div>
+                <div class="field"><label>Glucose</label><input type="number" id="glucose" placeholder="e.g. 120"></div>
+                <div class="field"><label>Blood Pressure</label><input type="number" id="bp" placeholder="e.g. 72"></div>
+                <div class="field"><label>Skin Thickness</label><input type="number" id="skin" placeholder="e.g. 23"></div>
+                <div class="field"><label>Insulin</label><input type="number" id="insulin" placeholder="e.g. 80"></div>
+                <div class="field"><label>BMI</label><input type="number" id="bmi" step="0.1" placeholder="e.g. 28.4"></div>
+                <div class="field"><label>Diabetes Pedigree</label><input type="number" id="dpf" step="0.01" placeholder="e.g. 0.5"></div>
+                <div class="field"><label>Age</label><input type="number" id="age" placeholder="e.g. 33"></div>
+                <div class="field full">
+                    <div class="error-msg" id="err">Please fill in all fields.</div>
+                    <button class="predict-btn" id="predict-btn" onclick="runPrediction()">Analyze Risk →</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-panel">
+            <div id="idle-state" style="color: rgba(255,255,255,0.3); text-align: center; padding: 40px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 20px;">
+                Your results will appear here
+            </div>
+            
+            <div class="loading-card" id="loading-state">Analyzing data...</div>
+
+            <div class="result-box" id="result-box">
+                <div class="result-outcome" id="res-outcome">RESULT</div>
+                <div class="result-prob" id="res-prob">0%</div>
+                <div class="result-text" id="res-factors"></div>
+                <div style="margin-top:20px; font-weight:bold; color:#fff">Recommendation:</div>
+                <div class="result-text" id="res-rec"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+async function runPrediction() {
+    const data = {
+        pregnancies: document.getElementById('preg').value,
+        glucose: document.getElementById('glucose').value,
+        blood_pressure: document.getElementById('bp').value,
+        skin_thickness: document.getElementById('skin').value,
+        insulin: document.getElementById('insulin').value,
+        bmi: document.getElementById('bmi').value,
+        dpf: document.getElementById('dpf').value,
+        age: document.getElementById('age').value
+    };
+
+    if (Object.values(data).some(v => v === '')) {
+        document.getElementById('err').classList.add('show');
+        return;
+    }
+    document.getElementById('err').classList.remove('show');
+
+    // UI Updates
+    document.getElementById('predict-btn').disabled = true;
+    document.getElementById('idle-state').style.display = 'none';
+    document.getElementById('result-box').classList.remove('show');
+    document.getElementById('loading-state').classList.add('show');
+
+    try {
+        const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        const isHigh = result.prediction === 1;
+        const box = document.getElementById('result-box');
+        box.className = 'result-box ' + (isHigh ? 'high' : 'low') + ' show';
+        
+        document.getElementById('res-outcome').textContent = result.outcome;
+        document.getElementById('res-prob').textContent = result.probability + '% Probability';
+        document.getElementById('res-factors').innerHTML = result.factors.join('<br>');
+        document.getElementById('res-rec').textContent = result.recommendation;
+
+    } catch (error) {
+        alert("Error connecting to server. Make sure app.py is running!");
+    } finally {
+        document.getElementById('loading-state').classList.remove('show');
+        document.getElementById('predict-btn').disabled = false;
+    }
+}
+</script>
+
+</body>
+</html>
